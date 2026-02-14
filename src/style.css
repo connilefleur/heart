@@ -1,0 +1,90 @@
+:root {
+  font-family: system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --monitor-bg: #0c0e0f;
+  --monitor-grid: rgba(255, 255, 255, 0.06);
+  --trace: #00e676;
+  /* Gap = 60/500 viewBox units → 12% of strip width; button matches so it touches the line */
+  --gap-width-pct: 12%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--monitor-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#app {
+  width: 100%;
+  padding: 0;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--monitor-bg);
+}
+
+.stage.heart-visible {
+  height: 600px;
+}
+
+.monitor-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(var(--monitor-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--monitor-grid) 1px, transparent 1px);
+  background-size: 10% 20%;
+  pointer-events: none;
+}
+
+.shape {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  color: var(--trace);
+  stroke: var(--trace);
+}
+
+.click-me {
+  position: relative;
+  z-index: 1;
+  width: var(--gap-width-pct);
+  padding: 0.45rem 0.5rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--trace);
+  background: var(--monitor-bg);
+  border: 1.25px solid var(--trace);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, transform 0.15s, opacity 0.2s;
+  box-sizing: border-box;
+}
+
+.click-me:hover {
+  border-color: #00ff88;
+  color: #00ff88;
+}
+
+.click-me:active {
+  transform: scale(0.98);
+}
+
+.click-me.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
