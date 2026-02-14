@@ -8,9 +8,24 @@
   <body>
     <div id="app">
       <div class="stage">
-        <div class="monitor-grid" aria-hidden="true"></div>
-        <svg class="shape" viewBox="0 0 500 600" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
-          <path id="morph-path" d="" vector-effect="non-scaling-stroke" />
+        <div class="top-strip">
+          <pre class="ansi-finger-heart" aria-hidden="true"></pre>
+          <div class="nail-viewer nail-viewer--hidden" id="nail-viewer" aria-label="3D nail model viewer"></div>
+        </div>
+        <svg class="shape" viewBox="0 0 1 1" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="0.002" stroke-linecap="round" stroke-linejoin="round">
+          <path id="morph-path" d="" />
+          <g class="graph-labels graph-labels--hidden" aria-hidden="true">
+            <svg class="label-svg label-svg--side" x="0" y="0.38" width="0.375" height="0.12" viewBox="0 0 120 40" preserveAspectRatio="xMidYMid meet">
+              <text x="60" y="26" text-anchor="middle" font-size="14" fill="currentColor">love</text>
+            </svg>
+            <svg class="label-svg label-svg--side" x="0.625" y="0.38" width="0.375" height="0.12" viewBox="0 0 120 40" preserveAspectRatio="xMidYMid meet">
+              <text x="60" y="26" text-anchor="middle" font-size="14" fill="currentColor">you</text>
+            </svg>
+            <svg class="label-svg label-svg--bottom" x="0" y="0.88" width="1" height="0.12" viewBox="0 0 320 80" preserveAspectRatio="xMidYMid meet">
+              <text class="equation" x="160" y="36" text-anchor="middle" font-size="10" fill="currentColor">y = x^(2/3) + 0.9 sin(kx) √(3 − x²)</text>
+              <text id="k-value" class="k-value" x="160" y="62" text-anchor="middle" font-size="10" fill="currentColor">k = 0.22</text>
+            </svg>
+          </g>
         </svg>
         <button type="button" class="click-me" id="click-me">click me</button>
       </div>

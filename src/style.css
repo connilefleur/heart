@@ -1,51 +1,86 @@
 :root {
   font-family: system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  --monitor-bg: #0c0e0f;
-  --monitor-grid: rgba(255, 255, 255, 0.06);
-  --trace: #00e676;
-  /* Gap = 60/500 viewBox units → 12% of strip width; button matches so it touches the line */
+  --monitor-bg: #000;
+  --trace: #e85a4f;
   --gap-width-pct: 12%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  overflow: hidden;
   background: var(--monitor-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 #app {
   width: 100%;
+  height: 100vh;
   padding: 0;
 }
 
 .stage {
   position: relative;
-  width: 100%;
-  height: 600px;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--monitor-bg);
 }
 
-.stage.heart-visible {
-  height: 600px;
+/* Top strip: ANSI art before click, 3D viewer after click (same spot) */
+.top-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40vh;
+  min-height: 240px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.monitor-grid {
+.top-strip .ansi-finger-heart {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  background-image:
-    linear-gradient(var(--monitor-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--monitor-grid) 1px, transparent 1px);
-  background-size: 10% 20%;
+  margin: 0 auto;
+  padding: 0.25rem;
+  z-index: 1;
+  overflow: auto;
+  display: block;
+  box-sizing: border-box;
+  background: transparent;
+  text-align: center;
+}
+
+.top-strip .nail-viewer {
+  position: absolute;
+  inset: 0;
+  background: transparent;
   pointer-events: none;
+}
+
+.top-strip .nail-viewer.nail-viewer--hidden {
+  opacity: 0;
+}
+
+.stage.heart-visible .top-strip .ansi-finger-heart {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage.heart-visible .top-strip .nail-viewer.nail-viewer--hidden {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nail-viewer canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .shape {
@@ -56,6 +91,26 @@ body {
   top: 0;
   color: var(--trace);
   stroke: var(--trace);
+}
+
+/* 80×48 ANSI grid: size so full art fits in top strip (40vh), no clipping */
+.ansi-finger-heart {
+  margin: 0;
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+  font-size: min(1.25vw, 0.833vh);
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: pre;
+  transition: opacity 0.25s ease;
+  background: transparent;
+  color: #fff;
+}
+
+/* Override ansi-to-html inline styles: transparent bg, white stroke only */
+.ansi-finger-heart span {
+  display: inline;
+  background: transparent !important;
+  color: #fff !important;
 }
 
 .click-me {
@@ -76,8 +131,8 @@ body {
 }
 
 .click-me:hover {
-  border-color: #00ff88;
-  color: #00ff88;
+  border-color: #f08a80;
+  color: #f08a80;
 }
 
 .click-me:active {
@@ -87,4 +142,23 @@ body {
 .click-me.hidden {
   opacity: 0;
   pointer-events: none;
+}
+
+/* Labels live in nested SVGs with their own viewBox so font-size is predictable */
+.graph-labels {
+  color: var(--trace);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.label-svg text {
+  fill: currentColor;
+}
+
+.graph-labels--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage.heart-visible .graph-labels--hidden {
+  opacity: 1;
 }
