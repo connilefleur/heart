@@ -85,6 +85,7 @@ export function initNailViewer(container) {
       const maxDim = Math.max(size.x, size.y, size.z)
       const scale = 0.58 / maxDim
       root.scale.setScalar(scale)
+      root.rotation.y = Math.PI
       tiltGroup.add(root)
       rotationStartTime = performance.now()
     },
