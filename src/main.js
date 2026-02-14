@@ -1,7 +1,5 @@
 import './style.css'
 import { initNailViewer } from './nail-viewer.js'
-import { ANSI_FINGER_HEART } from './ansi-finger-heart.js'
-import Filter from 'ansi-to-html'
 
 const K_MIN = 0.22
 const K_MAX = 25
@@ -216,13 +214,6 @@ pathEl.setAttribute('d', pathWithGap(GAP_LEFT_INIT, GAP_RIGHT_INIT))
 
 const nailViewerEl = document.getElementById('nail-viewer')
 if (nailViewerEl) initNailViewer(nailViewerEl)
-
-const ansiPre = document.querySelector('.ansi-finger-heart')
-if (ansiPre) {
-  const ansiWithEsc = ANSI_FINGER_HEART.replace(/\\e/g, '\u001b')
-  const filter = new Filter({ newline: true })
-  ansiPre.innerHTML = filter.toHtml(ansiWithEsc)
-}
 
 btn.addEventListener('click', () => {
   if (showingHearts) return

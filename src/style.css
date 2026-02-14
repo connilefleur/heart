@@ -4,56 +4,77 @@
   --monitor-bg: #000;
   --trace: #e85a4f;
   --gap-width-pct: 12%;
+  --safe-top: env(safe-area-inset-top, 0);
+  --safe-bottom: env(safe-area-inset-bottom, 0);
+  --safe-left: env(safe-area-inset-left, 0);
+  --safe-right: env(safe-area-inset-right, 0);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
+  overflow-x: hidden;
   background: var(--monitor-bg);
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  box-sizing: border-box;
 }
 
 #app {
   width: 100%;
-  height: 100vh;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   padding: 0;
+  box-sizing: border-box;
 }
 
 .stage {
   position: relative;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--monitor-bg);
+  box-sizing: border-box;
 }
 
-/* Top strip: ANSI art before click, 3D viewer after click (same spot) */
+/* Top strip: finger-heart logo before click, 3D viewer after click (same spot) */
 .top-strip {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 40vh;
-  min-height: 240px;
+  height: clamp(28vh, 40vh, 320px);
+  min-height: 160px;
+  max-height: 50vh;
   z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.top-strip .ansi-finger-heart {
+.top-strip .finger-heart-logo {
   position: absolute;
   inset: 0;
-  margin: 0 auto;
-  padding: 0.25rem;
+  margin: auto;
   z-index: 1;
-  overflow: auto;
-  display: block;
-  box-sizing: border-box;
-  background: transparent;
-  text-align: center;
+  width: auto;
+  height: auto;
+  max-width: 90%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: invert(1);
+  transition: opacity 0.25s ease;
 }
 
 .top-strip .nail-viewer {
@@ -67,7 +88,7 @@ body {
   opacity: 0;
 }
 
-.stage.heart-visible .top-strip .ansi-finger-heart {
+.stage.heart-visible .top-strip .finger-heart-logo {
   opacity: 0;
   pointer-events: none;
 }
@@ -93,41 +114,25 @@ body {
   stroke: var(--trace);
 }
 
-/* 80×48 ANSI grid: size so full art fits in top strip (40vh), no clipping */
-.ansi-finger-heart {
-  margin: 0;
-  font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
-  font-size: min(1.25vw, 0.833vh);
-  line-height: 1;
-  letter-spacing: 0;
-  white-space: pre;
-  transition: opacity 0.25s ease;
-  background: transparent;
-  color: #fff;
-}
-
-/* Override ansi-to-html inline styles: transparent bg, white stroke only */
-.ansi-finger-heart span {
-  display: inline;
-  background: transparent !important;
-  color: #fff !important;
-}
-
 .click-me {
   position: relative;
   z-index: 1;
   width: var(--gap-width-pct);
-  padding: 0.45rem 0.5rem;
-  font-size: 0.9rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
   font-family: inherit;
   font-weight: 500;
   color: var(--trace);
   background: var(--monitor-bg);
   border: 1.25px solid var(--trace);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s, transform 0.15s, opacity 0.2s;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .click-me:hover {
@@ -161,4 +166,22 @@ body {
 
 .stage.heart-visible .graph-labels--hidden {
   opacity: 1;
+}
+
+/* Mobile: enough room for ANSI art and nail viewer */
+@media (max-width: 480px) {
+  .top-strip {
+    min-height: 140px;
+  }
+}
+
+/* Prevent overscroll/bounce from revealing gap on iOS */
+@supports (min-height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
+  #app,
+  .stage {
+    min-height: 100dvh;
+  }
 }

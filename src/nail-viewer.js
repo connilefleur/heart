@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-const GLB_PATH = '/glb/Nail.glb'
+const GLB_PATH = import.meta.env.BASE_URL + 'glb/Nail.glb'
 
 const SILVER = new THREE.MeshPhysicalMaterial({
   color: 0xc0c4c8,
