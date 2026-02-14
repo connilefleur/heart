@@ -83,9 +83,11 @@ export function initNailViewer(container) {
       root.position.sub(center)
       const size = box.getSize(new THREE.Vector3())
       const maxDim = Math.max(size.x, size.y, size.z)
-      const scale = 0.58 / maxDim
+      const baseScale = (0.58 * 1.1) / maxDim
+      const scale = window.innerWidth < 768 ? baseScale * 1.1 : baseScale
       root.scale.setScalar(scale)
       root.rotation.y = Math.PI
+      root.position.y = -0.08
       tiltGroup.add(root)
       rotationStartTime = performance.now()
     },

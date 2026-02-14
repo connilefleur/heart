@@ -73,7 +73,8 @@ body {
   max-width: 90%;
   max-height: 100%;
   object-fit: contain;
-  filter: invert(1);
+  /* Colorize black logo to trace color #e85a4f (same as heart line) */
+  filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(98%) contrast(92%);
   transition: opacity 0.25s ease;
 }
 
@@ -117,11 +118,11 @@ body {
 .click-me {
   position: relative;
   z-index: 1;
-  width: var(--gap-width-pct);
+  width: auto;
   min-width: 44px;
   min-height: 44px;
   padding: 0.5rem 0.75rem;
-  font-size: clamp(0.875rem, 2.5vw, 1rem);
+  font-size: clamp(1rem, 2.9vw, 1.15rem);
   font-family: inherit;
   font-weight: 500;
   color: var(--trace);
@@ -129,6 +130,7 @@ body {
   border: 1.25px solid var(--trace);
   border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
   transition: border-color 0.2s, color 0.2s, transform 0.15s, opacity 0.2s;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -157,6 +159,7 @@ body {
 
 .label-svg text {
   fill: currentColor;
+  font-size: 1.15em;
 }
 
 .graph-labels--hidden {
@@ -168,7 +171,54 @@ body {
   opacity: 1;
 }
 
-/* Mobile: enough room for ANSI art and nail viewer */
+/* Fixed top/bottom captions – visible when heart is visible */
+.fixed-top-caption,
+.fixed-bottom-equation {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+  margin: 0;
+  color: var(--trace);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(0.8rem, 2.2vw, 1rem);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.stage.heart-visible ~ .fixed-top-caption,
+.stage.heart-visible ~ .fixed-bottom-equation {
+  opacity: 1;
+}
+
+.fixed-top-caption {
+  top: 0;
+  padding: calc(0.5rem + var(--safe-top)) 0.5rem 0.5rem;
+}
+
+.fixed-bottom-equation {
+  bottom: 0;
+  padding: 0.5rem 0.5rem calc(0.5rem + var(--safe-bottom));
+  white-space: nowrap;
+}
+
+.fixed-bottom-equation .equation-text {
+  margin-right: 0.5em;
+}
+
+/* Mobile: 5px inset so labels are not at the very edge */
+@media (max-width: 768px) {
+  .stage {
+    padding: 0 5px;
+    box-sizing: border-box;
+  }
+}
+
+/* Mobile: enough room for logo and nail viewer */
 @media (max-width: 480px) {
   .top-strip {
     min-height: 140px;

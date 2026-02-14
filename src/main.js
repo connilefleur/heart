@@ -9,10 +9,13 @@ const K_ANIMATION_MS = 12000
 const STRIP_WIDTH = 1
 const GAP_LEFT_INIT = 0.433
 const GAP_RIGHT_INIT = 0.567
+const GAP_LEFT_INIT_MOBILE = 0.36
+const GAP_RIGHT_INIT_MOBILE = 0.64
 const GAP_CLOSE_X = 0.5
 const BASELINE_Y = 0.5
 const HEART_AMPLITUDE = 0.095
 const HEART_WIDTH = 0.25
+const HEART_WIDTH_MOBILE = 0.34
 const PHASE1_MS = 450
 const PHASE3_MS = 800
 const PTS_BASELINE = 25
@@ -31,17 +34,32 @@ function heartY(xMath, k) {
   return Math.pow(x2, 1 / 3) + 0.9 * Math.sin(k * xMath) * Math.sqrt(radicand)
 }
 
-function buildStripLayout() {
-  const gap = (STRIP_WIDTH - NUM_HEARTS * HEART_WIDTH) / (NUM_HEARTS + 1)
+function buildStripLayout(heartWidth) {
+  const hw = heartWidth ?? HEART_WIDTH
+  const gap = (STRIP_WIDTH - NUM_HEARTS * hw) / (NUM_HEARTS + 1)
   const hearts = []
   for (let i = 0; i < NUM_HEARTS; i++) {
-    const xStart = gap + i * (HEART_WIDTH + gap)
-    hearts.push({ xStart, xEnd: xStart + HEART_WIDTH, centerX: xStart + HEART_WIDTH / 2 })
+    const xStart = gap + i * (hw + gap)
+    hearts.push({ xStart, xEnd: xStart + hw, centerX: xStart + hw / 2 })
   }
   return { gap, hearts }
 }
 
-const { hearts } = buildStripLayout()
+function isMobile() {
+  return typeof window !== 'undefined' && window.innerWidth < 768
+}
+
+function getLayout() {
+  const hw = isMobile() ? HEART_WIDTH_MOBILE : HEART_WIDTH
+  const { hearts } = buildStripLayout(hw)
+  const heartPoints = stripWithHeartsPathPoints(hearts, hw)
+  const HEART_SEG_START = PTS_BASELINE
+  const HEART_SEG_END = PTS_BASELINE + PTS_PER_HEART
+  const heartSegmentX = heartPoints.slice(HEART_SEG_START, HEART_SEG_END).map(p => p[0])
+  return { hearts, heartWidth: hw, heartPoints, heartSegmentX, HEART_SEG_START, HEART_SEG_END }
+}
+
+let layout = getLayout()
 
 const TOTAL_PTS =
   PTS_BASELINE * 2 +
@@ -83,13 +101,11 @@ function pointsToPathTwoSegments(ptsLeft, ptsRight) {
   return d
 }
 
-function stripWithHeartsPathPoints() {
+function stripWithHeartsPathPoints(hearts, heartWidth) {
+  const hw = heartWidth ?? HEART_WIDTH
   const pts = []
-  const halfW = HEART_WIDTH / 2
+  const halfW = hw / 2
   const xScale = halfW / sqrt3
-
-  let seg = 0
-  let heartIndex = 0
 
   const addBaseline = (x0, x1, n) => {
     for (let i = 0; i < n; i++) {
@@ -131,14 +147,9 @@ function stripWithHeartsPathPoints() {
   return pts
 }
 
-const heartPoints = stripWithHeartsPathPoints()
-
-const HEART_SEG_START = PTS_BASELINE
-const HEART_SEG_END = PTS_BASELINE + PTS_PER_HEART
-const heartSegmentX = heartPoints.slice(HEART_SEG_START, HEART_SEG_END).map(p => p[0])
-
-function getHeartSegmentYOffsets(k) {
-  const halfW = HEART_WIDTH / 2
+function getHeartSegmentYOffsets(hearts, heartWidth, k) {
+  const hw = heartWidth ?? HEART_WIDTH
+  const halfW = hw / 2
   const xScale = halfW / sqrt3
   const centerX = (hearts[0].xStart + hearts[0].xEnd) / 2
   const n = PTS_PER_HEART
@@ -161,8 +172,9 @@ function getHeartSegmentYOffsets(k) {
   return offsets
 }
 
-function pathPointsWithAmplitude(amp, k) {
-  const yOffsets = getHeartSegmentYOffsets(k)
+function pathPointsWithAmplitude(layout, amp, k) {
+  const { heartPoints, heartSegmentX, HEART_SEG_START, HEART_SEG_END, hearts, heartWidth } = layout
+  const yOffsets = getHeartSegmentYOffsets(hearts, heartWidth, k)
   const pts = []
   for (let i = 0; i < HEART_SEG_START; i++) {
     pts.push([heartPoints[i][0], heartPoints[i][1]])
@@ -197,11 +209,38 @@ function easeInOutCubic(t) {
 }
 
 const pathEl = document.getElementById('morph-path')
+const shapeSvg = document.querySelector('.shape')
 const kValueEl = document.getElementById('k-value')
 const btn = document.getElementById('click-me')
 const stage = document.querySelector('.stage')
 
 let showingHearts = false
+
+function updateShapeAspectRatio() {
+  if (!shapeSvg) return
+  const isWide = window.innerWidth >= 768
+  shapeSvg.setAttribute(
+    'preserveAspectRatio',
+    isWide ? 'none' : 'xMidYMid meet'
+  )
+}
+function getGapInit() {
+  return isMobile()
+    ? [GAP_LEFT_INIT_MOBILE, GAP_RIGHT_INIT_MOBILE]
+    : [GAP_LEFT_INIT, GAP_RIGHT_INIT]
+}
+
+function updateLayoutAndPath() {
+  layout = getLayout()
+  updateShapeAspectRatio()
+  if (!showingHearts) {
+    const [gl, gr] = getGapInit()
+    pathEl.setAttribute('d', pathWithGap(gl, gr))
+  }
+}
+
+updateShapeAspectRatio()
+window.addEventListener('resize', updateLayoutAndPath)
 
 function pathWithGap(gapLeft, gapRight) {
   const pts = lineWithGapPathPoints(gapLeft, gapRight)
@@ -210,7 +249,7 @@ function pathWithGap(gapLeft, gapRight) {
   return pointsToPathTwoSegments(leftPts, rightPts)
 }
 
-pathEl.setAttribute('d', pathWithGap(GAP_LEFT_INIT, GAP_RIGHT_INIT))
+pathEl.setAttribute('d', pathWithGap(...getGapInit()))
 
 const nailViewerEl = document.getElementById('nail-viewer')
 if (nailViewerEl) initNailViewer(nailViewerEl)
@@ -228,15 +267,16 @@ btn.addEventListener('click', () => {
     const elapsed = now - start
 
     if (phase === 1) {
+      const [glInit, grInit] = getGapInit()
       const t = Math.min(elapsed / PHASE1_MS, 1)
       const eased = easeInOutCubic(t)
-      const gapLeft = GAP_LEFT_INIT + eased * (GAP_CLOSE_X - GAP_LEFT_INIT)
-      const gapRight = GAP_RIGHT_INIT - eased * (GAP_RIGHT_INIT - GAP_CLOSE_X)
+      const gapLeft = glInit + eased * (GAP_CLOSE_X - glInit)
+      const gapRight = grInit - eased * (grInit - GAP_CLOSE_X)
       pathEl.setAttribute('d', pathWithGap(gapLeft, gapRight))
       if (t >= 1) {
         phase = 3
         stage.classList.add('heart-visible')
-        pathEl.setAttribute('d', pointsToPath(pathPointsWithAmplitude(0, K_MIN)))
+        pathEl.setAttribute('d', pointsToPath(pathPointsWithAmplitude(layout, 0, K_MIN)))
       }
       requestAnimationFrame(tick)
       return
@@ -247,7 +287,7 @@ btn.addEventListener('click', () => {
       const phase3Elapsed = elapsed - phase3Start
       const t = Math.min(phase3Elapsed / PHASE3_MS, 1)
       const eased = easeInOutCubic(t)
-      pathEl.setAttribute('d', pointsToPath(pathPointsWithAmplitude(eased, K_MIN)))
+      pathEl.setAttribute('d', pointsToPath(pathPointsWithAmplitude(layout, eased, K_MIN)))
       kValueEl.textContent = `k = ${K_MIN.toFixed(2)}`
       if (t >= 1) {
         phase = 4
@@ -259,7 +299,7 @@ btn.addEventListener('click', () => {
 
     const k = currentK(kAnimationStart)
     kValueEl.textContent = `k = ${k.toFixed(2)}`
-    pathEl.setAttribute('d', pointsToPath(pathPointsWithAmplitude(1, k)))
+    pathEl.setAttribute('d', pointsToPath(pathPointsWithAmplitude(layout, 1, k)))
     requestAnimationFrame(tick)
   }
 
